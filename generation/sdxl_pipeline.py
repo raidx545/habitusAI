@@ -66,11 +66,13 @@ def _load_pipeline():
         use_safetensors=True,
         torch_dtype=torch.float16,
     )
-
-    # Optimize for T4 GPU (16GB VRAM)
-    # SDXL + ControlNet fp16 takes ~11GB, so it safely fits fully in VRAM!
-    # Bypassing enable_model_cpu_offload() to avoid 'accelerate' package bugs on Colab.
-    pipe.to("cuda")
+    # Optimize for T4 GPU (Google Colab free tier has strict 12.7GB CPU RAM limits)
+    # This securely juggles the massive SDXL weights natively avoiding RAM crashes!
+    try:
+        pipe.enable_model_cpu_offload()
+    except Exception as e:
+        print(f"[SDXLPipeline] Offloading failed ({e}), falling back to direct CUDA...")
+        pipe.to("cuda")
 
     _PIPELINE = pipe
     print("[SDXLPipeline] SDXL Pipeline loaded successfully!")
