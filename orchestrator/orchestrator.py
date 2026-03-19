@@ -70,12 +70,15 @@ async def run_agents_parallel(agent_input: AgentInput):
 
     vision_task = asyncio.to_thread(vision_run, agent_input)
     style_task = asyncio.to_thread(style_run, agent_input)
-    layout_task = asyncio.to_thread(layout_run, agent_input)
     commerce_task = asyncio.to_thread(commerce_run, agent_input)
 
-    vision_out, style_out, layout_out, commerce_out = await asyncio.gather(
-        vision_task, style_task, layout_task, commerce_task
+    # Yield control to let them start
+    vision_out, style_out, commerce_out = await asyncio.gather(
+        vision_task, style_task, commerce_task
     )
+
+    # Layout Agent depends on Vision Agent's output!
+    layout_out = await asyncio.to_thread(layout_run, agent_input, vision_out)
 
     return {
         "vision": vision_out,
