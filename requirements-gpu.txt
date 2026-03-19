@@ -1,0 +1,38 @@
+# ── GPU / ML requirements ──────────────────────────────────
+# Install these ONLY on the GPU server (Google Colab T4, RunPod, etc.)
+# NOT needed on your local Mac dev machine
+# Usage: pip install -r requirements-gpu.txt
+#
+# NOTE: xformers must match your torch+CUDA version exactly.
+# On Colab T4 (CUDA 12.1), use:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+#   pip install xformers==0.0.25 --index-url https://download.pytorch.org/whl/cu121
+
+# ── Core ML ───────────────────────────────────────────────
+torch>=2.2.0
+torchvision>=0.17.0
+
+# ── Vision Agent ──────────────────────────────────────────
+ultralytics>=8.0.0          # YOLOv8
+segment-anything>=1.0       # SAM
+# ZoeDepth — install from source:
+#   git clone https://github.com/isl-org/ZoeDepth && pip install -e ZoeDepth
+
+# ── Style Agent ───────────────────────────────────────────
+open-clip-torch>=2.24.0     # CLIP ViT-L/14
+
+# ── Image generation pipeline ────────────────────────────
+diffusers>=0.27.0           # SDXL + ControlNet
+accelerate>=0.28.0
+transformers>=4.40.0
+xformers>=0.0.25            # memory-efficient attention (CUDA only)
+opencv-python>=4.9.0
+
+# ── 3D / Layout ───────────────────────────────────────────
+open3d>=0.18.0
+
+# ── Storage ───────────────────────────────────────────────
+boto3>=1.34.0               # AWS S3
+
+# ── Include core requirements too ─────────────────────────
+-r requirements.txt
