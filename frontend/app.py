@@ -144,4 +144,6 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo")) as app:
 
 if __name__ == "__main__":
     print("[UI] Starting HabitusAI server...")
-    app.launch(server_name="0.0.0.0", server_port=7860, share=True)
+    # .queue() enables WebSockets so the browser connection NEVER times out 
+    # during 2+ minute SDXL generations!
+    app.queue(max_size=10).launch(server_name="0.0.0.0", server_port=7860, share=True)
