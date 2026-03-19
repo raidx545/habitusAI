@@ -67,8 +67,10 @@ def _load_pipeline():
         torch_dtype=torch.float16,
     )
 
-    # Optimize for T4 GPU
-    pipe.enable_model_cpu_offload()  # Keeps mem usage ~11GB instead of 20GB+
+    # Optimize for T4 GPU (16GB VRAM)
+    # SDXL + ControlNet fp16 takes ~11GB, so it safely fits fully in VRAM!
+    # Bypassing enable_model_cpu_offload() to avoid 'accelerate' package bugs on Colab.
+    pipe.to("cuda")
 
     _PIPELINE = pipe
     print("[SDXLPipeline] SDXL Pipeline loaded successfully!")
