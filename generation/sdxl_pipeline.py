@@ -70,6 +70,8 @@ def _load_pipeline():
     # This securely juggles the massive SDXL weights natively avoiding RAM crashes!
     try:
         pipe.enable_model_cpu_offload()
+        pipe.enable_vae_slicing() # Fixes the 100% progress bar VRAM crash
+        pipe.enable_vae_tiling()  # Fixes the 100% progress bar VRAM crash
     except Exception as e:
         print(f"[SDXLPipeline] Offloading failed ({e}), falling back to direct CUDA...")
         pipe.to("cuda")
