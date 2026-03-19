@@ -82,7 +82,13 @@ async def process_room(image_filepath, intent, budget):
     # Format products for UI Dataframe display
     product_data = []
     for p in agg_result.get("products", []):
-        product_data.append([p.name, p.category, f"₹{p.price_inr}", p.url])
+        # Handle both dicts and Pydantic objects safely
+        name = p.get("name", "Unknown") if isinstance(p, dict) else getattr(p, "name", "Unknown")
+        category = p.get("category", "") if isinstance(p, dict) else getattr(p, "category", "")
+        price = p.get("price_inr", 0) if isinstance(p, dict) else getattr(p, "price_inr", 0)
+        url = p.get("url", "") if isinstance(p, dict) else getattr(p, "url", "")
+        
+        product_data.append([name, category, f"₹{price}", url])
 
     summary = agg_result.get("design_summary", "No summary provided.")
     sdxl_prompt = agg_result.get("sdxl_prompt", "")
