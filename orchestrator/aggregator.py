@@ -27,6 +27,7 @@ Your job is to synthesize all this data and return a JSON with two keys:
    - Describe the redesigned room in vivid detail using the style keywords.
    - Mention specific furniture placements from the layout agent.
    - Include lighting, textures, materials, atmosphere.
+   - CRITICAL: You MUST explicitly include the keywords "highly organized, decluttered, immaculate, neat, architectural, minimalist organization" in the prompt.
    - Always end with: "photorealistic, 8K, architectural photography, interior design magazine"
    - Do NOT include negative prompts here.
 

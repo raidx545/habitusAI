@@ -72,7 +72,7 @@ Extracts spatial understanding from the room image.
 Understands and classifies the visual style of the room and the user's intent.
 
 - **CLIP ViT-L/14** — encodes the room image into a 512-dimensional style embedding vector.
-- **ChromaDB** — performs similarity search against a curated vector database of labeled interior design styles (minimalist, maximalist, Scandinavian, Japandi, industrial, etc.).
+- **ChromaDB** — performs similarity search against a curated vector database of labeled interior design styles (minimalist, maximalist, Scandinavian, Japandi, industrial3, etc.).
 - Maps the user's text intent ("make it cozy", "Scandinavian vibes") to precise design language that SDXL responds to well.
 
 **Output:** `style_label` + `style_keywords` string for SDXL prompt injection

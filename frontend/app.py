@@ -79,7 +79,9 @@ async def process_room(image_filepath, intent, budget):
         category = p.get("category", "") if isinstance(p, dict) else getattr(p, "category", "")
         price = p.get("price_inr", 0) if isinstance(p, dict) else getattr(p, "price_inr", 0)
         url = p.get("url", "") if isinstance(p, dict) else getattr(p, "url", "")
-        product_data.append([name, category, f"₹{price}", url])
+        # Format the URL as a clickable Markdown link
+        marked_url = f'<a href="{url}" target="_blank">View Product</a>' if url else "N/A"
+        product_data.append([name, category, f"₹{price}", marked_url])
 
     style_label = orch_result["agent_outputs"]["style"].style_label
     style_conf = orch_result["agent_outputs"]["style"].confidence
@@ -138,7 +140,7 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo")) as app:
             gr.Markdown("### 🛒 Recommended Furniture (IKEA)")
             products_table = gr.Dataframe(
                 headers=["Product Name", "Category", "Price", "Link"],
-                datatype=["str", "str", "str", "str"],
+                datatype=["str", "str", "str", "markdown"],
                 col_count=(4, "fixed"),
                 interactive=False
             )

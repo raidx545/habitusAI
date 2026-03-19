@@ -106,16 +106,17 @@ def generate_room(
     # 3. Generate
     print("[SDXLPipeline] Generating image (est. 20-30s)...")
     
-    # We use a lower controlnet_conditioning_scale (0.45 - 0.55)
-    # so the AI has the freedom to 'erase' the original clutter and 
-    # hallucinate brand new sleek furniture over the messy shapes!
+    # We use a very low controlnet_conditioning_scale (0.45) 
+    # to completely shatter the old messy room traces, combined with an 
+    # extremely high text guidance (8.5) and 50 steps so the AI ruthlessly 
+    # enforces a perfectly organized, symmetrical, architectural masterpiece!
     result = pipe(
-        prompt=prompt,
-        negative_prompt=neg_prompt + ", worst quality, normal quality, low resolution, messy, cluttered, wrinkled sheets, chaotic, dirty, ugly, poorly drawn furniture, disproportionate, weird architecture",
+        prompt=prompt + ", perfectly arranged, hyper-organized, geometrical symmetry, minimalist, uncluttered clean surfaces",
+        negative_prompt=neg_prompt + ", worst quality, normal quality, low resolution, messy, cluttered, wrinkled sheets, chaotic, dirty, ugly, poorly drawn furniture, disproportionate, weird architecture, disorganized",
         image=depth_image,
         controlnet_conditioning_scale=0.45,
-        num_inference_steps=40,     # Higher steps = sharper realism
-        guidance_scale=7.5,
+        num_inference_steps=50,     # Maximum realistic sharpness
+        guidance_scale=8.5,         # Brutally force the text prompt over the old image shape
     ).images[0]
 
     # Save and return
