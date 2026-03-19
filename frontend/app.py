@@ -38,12 +38,18 @@ except ImportError:
 
 async def process_room(image_filepath, intent, budget):
     """
-    Main processing function called when the user clicks 'Redesign Room'
+    Main processing generator for Gradio. Yielding intermediate text updates
+    keeps the Cloudflare WebSockets alive and prevents the dreaded 100-second 
+    silent disconnected timeout!
     """
     if not image_filepath:
-        return None, "Please upload an image.", "", "", []
+        yield None, "Please upload an image.", "", "", []
+        return
 
     print(f"\n[UI] Starting redesign for intent: '{intent}' with budget ₹{budget}")
+    
+    # ── Heartbeat 1 ──
+    yield None, "⏳ 1. Orchestrating Agents (Vision, Style, Layout, Commerce)...", "Waiting...", "Waiting...", []
 
     agent_input = AgentInput(
         image_url=image_filepath,
@@ -51,26 +57,44 @@ async def process_room(image_filepath, intent, budget):
         budget_inr=int(budget)
     )
 
-    # 1. ORCHESTRATE
-    print("[UI] Running Orchestrator (4 Agents)...")
     try:
         orch_result = await orchestrate(agent_input)
     except Exception as e:
-        return None, f"Orchestrator Error: {e}", "", "", []
+        yield None, f"❌ Orchestrator Error: {e}", "", "", []
+        return
 
-    # 2. AGGREGATE
-    print("[UI] Running Aggregator...")
+    # ── Heartbeat 2 ──
+    yield None, "⏳ 2. Synthesizing SDXL Prompts & Extracted Data...", "Waiting...", "Waiting...", []
+    
     try:
         agg_result = aggregate(orch_result)
     except Exception as e:
-        return None, f"Aggregator Error: {e}", "", "", []
+        yield None, f"❌ Aggregator Error: {e}", "", "", []
+        return
 
-    # 3. GENERATE (SDXL)
+    # ── Format UI Data for Heartbeat 3 ──
+    product_data = []
+    for p in agg_result.get("products", []):
+        name = p.get("name", "Unknown") if isinstance(p, dict) else getattr(p, "name", "Unknown")
+        category = p.get("category", "") if isinstance(p, dict) else getattr(p, "category", "")
+        price = p.get("price_inr", 0) if isinstance(p, dict) else getattr(p, "price_inr", 0)
+        url = p.get("url", "") if isinstance(p, dict) else getattr(p, "url", "")
+        product_data.append([name, category, f"₹{price}", url])
+
+    style_label = orch_result["agent_outputs"]["style"].style_label
+    style_conf = orch_result["agent_outputs"]["style"].confidence
+    style_info = f"Style: {style_label.title()} (Confidence: {style_conf:.2f})"
+    sdxl_prompt = agg_result.get("sdxl_prompt", "")
+    summary = agg_result.get("design_summary", "No summary provided.")
+
+    # ── Heartbeat 3 (The Long 2+ min Wait for SDXL) ──
+    yield None, "⏳ 3. Firing up T4 GPU for SDXL ControlNet generation (takes ~2 mins)...", style_info, sdxl_prompt, product_data
+
     if PIPELINE_AVAILABLE:
-        print("[UI] Starting SDXL ControlNet Generation...")
         out_path = f"/tmp/final_design_{os.path.basename(image_filepath)}.png"
         try:
-            final_img_path = generate_room(agg_result, out_path)
+            # Releasing blocking thread correctly to allow asyncio to pump WebSockets!
+            final_img_path = await asyncio.to_thread(generate_room, agg_result, out_path)
             final_img = Image.open(final_img_path)
         except Exception as e:
             print(f"[UI] SDXL Generation failed: {e}")
@@ -79,25 +103,8 @@ async def process_room(image_filepath, intent, budget):
         final_img = None
         print("[UI] Skipping SDXL (dependencies missing).")
 
-    # Format products for UI Dataframe display
-    product_data = []
-    for p in agg_result.get("products", []):
-        # Handle both dicts and Pydantic objects safely
-        name = p.get("name", "Unknown") if isinstance(p, dict) else getattr(p, "name", "Unknown")
-        category = p.get("category", "") if isinstance(p, dict) else getattr(p, "category", "")
-        price = p.get("price_inr", 0) if isinstance(p, dict) else getattr(p, "price_inr", 0)
-        url = p.get("url", "") if isinstance(p, dict) else getattr(p, "url", "")
-        
-        product_data.append([name, category, f"₹{price}", url])
-
-    summary = agg_result.get("design_summary", "No summary provided.")
-    sdxl_prompt = agg_result.get("sdxl_prompt", "")
-    
-    style_label = orch_result["agent_outputs"]["style"].style_label
-    style_conf = orch_result["agent_outputs"]["style"].confidence
-    style_info = f"Style: {style_label.title()} (Confidence: {style_conf:.2f})"
-
-    return final_img, summary, style_info, sdxl_prompt, product_data
+    # ── Final Return ──
+    yield final_img, summary, style_info, sdxl_prompt, product_data
 
 # ── Gradio UI Layout ──────────────────────────────────────────────────────────
 

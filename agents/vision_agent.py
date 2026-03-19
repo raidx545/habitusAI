@@ -156,6 +156,12 @@ def run(agent_input: AgentInput) -> VisionOutput:
         with urllib.request.urlopen(agent_input.image_url) as r:
             pil_img = Image.open(BytesIO(r.read())).convert("RGB")
 
+    # Safely resize massive iPhone/4K photos so they don't blow up the Colab RAM!
+    MAX_DIM = 1024
+    if pil_img.width > MAX_DIM or pil_img.height > MAX_DIM:
+        pil_img.thumbnail((MAX_DIM, MAX_DIM), Image.Resampling.LANCZOS)
+        print(f"[VisionAgent] Resized massive input image to {pil_img.size}")
+
     np_rgb = np.array(pil_img)
     bgr    = cv2.cvtColor(np_rgb, cv2.COLOR_RGB2BGR)
     H, W   = bgr.shape[:2]

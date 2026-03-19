@@ -67,14 +67,11 @@ def _load_pipeline():
         torch_dtype=torch.float16,
     )
     # Optimize for T4 GPU (Google Colab free tier has strict 12.7GB CPU RAM limits)
-    # This securely juggles the massive SDXL weights natively avoiding RAM crashes!
-    try:
-        pipe.enable_model_cpu_offload()
-        pipe.enable_vae_slicing() # Fixes the 100% progress bar VRAM crash
-        pipe.enable_vae_tiling()  # Fixes the 100% progress bar VRAM crash
-    except Exception as e:
-        print(f"[SDXLPipeline] Offloading failed ({e}), falling back to direct CUDA...")
-        pipe.to("cuda")
+    # Bypassing enable_model_cpu_offload() because storing SDXL in CPU RAM instantly crashes the 12GB Colab limit!
+    # Instead, we push it completely into the 15GB T4 GPU VRAM.
+    pipe.to("cuda")
+    pipe.enable_vae_slicing() # Fixes the VRAM decode spike at 100%
+    pipe.enable_vae_tiling()  # Fixes the VRAM decode spike at 100%
 
     _PIPELINE = pipe
     print("[SDXLPipeline] SDXL Pipeline loaded successfully!")
