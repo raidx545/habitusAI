@@ -106,14 +106,15 @@ def generate_room(
     # 3. Generate
     print("[SDXLPipeline] Generating image (est. 20-30s)...")
     
-    # We use a relatively high controlnet_conditioning_scale (0.8 - 1.0) 
-    # so it strictly follows the layout.
+    # We use a lower controlnet_conditioning_scale (0.45 - 0.55)
+    # so the AI has the freedom to 'erase' the original clutter and 
+    # hallucinate brand new sleek furniture over the messy shapes!
     result = pipe(
         prompt=prompt,
-        negative_prompt=neg_prompt,
+        negative_prompt=neg_prompt + ", worst quality, normal quality, low resolution, messy, cluttered, wrinkled sheets, chaotic, dirty, ugly, poorly drawn furniture, disproportionate, weird architecture",
         image=depth_image,
-        controlnet_conditioning_scale=0.85,
-        num_inference_steps=30,     # Enough for SDXL
+        controlnet_conditioning_scale=0.45,
+        num_inference_steps=40,     # Higher steps = sharper realism
         guidance_scale=7.5,
     ).images[0]
 
