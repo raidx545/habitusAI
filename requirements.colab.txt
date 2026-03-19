@@ -1,0 +1,25 @@
+# Unified Colab Requirements for HabitusAI
+# Features: Groq, Apify, YOLOv8, DepthAnything-V2, SDXL ControlNet, Gradio
+
+# Core & Env
+python-dotenv
+numpy
+Pillow
+shapely
+
+# APIs
+groq
+apify-client
+
+# Web UI
+gradio
+
+# Machine Learning & Computer Vision (GPU)
+torch
+opencv-python-headless
+transformers
+ultralytics
+diffusers
+accelerate
+invisible-watermark
+safetensors
